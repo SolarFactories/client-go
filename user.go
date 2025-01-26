@@ -11,17 +11,17 @@ type UserService struct {
 }
 
 type ManagedUser struct {
-	Username string `json:"username"`
-	LastPasswordChange int `json:"lastPasswordChange"`
-	Fullname string `json:"fullname,omitempty"`
-	Email string `json:"email,omitempty"`
-	Suspended bool `json:"suspended,omitempty"`
-	ForcePasswordChange bool `json:"forcePasswordChange,omitempty"`
-	NonExpiryPassword bool `json:"nonExpiryPassword,omitempty"`
-	Teams []Team `json:"teams,omitempty"`
-	Permissions []Permission `json:"permissions,omitempty"`
-	NewPassword string `json:"newPassword,omitempty"`
-	ConfirmPassword string `json:"confirmPassword,omitempty"`
+	Username            string       `json:"username"`
+	LastPasswordChange  int          `json:"lastPasswordChange"`
+	Fullname            string       `json:"fullname,omitempty"`
+	Email               string       `json:"email,omitempty"`
+	Suspended           bool         `json:"suspended,omitempty"`
+	ForcePasswordChange bool         `json:"forcePasswordChange,omitempty"`
+	NonExpiryPassword   bool         `json:"nonExpiryPassword,omitempty"`
+	Teams               []Team       `json:"teams,omitempty"`
+	Permissions         []Permission `json:"permissions,omitempty"`
+	NewPassword         string       `json:"newPassword,omitempty"`
+	ConfirmPassword     string       `json:"confirmPassword,omitempty"`
 }
 
 func (us UserService) Login(ctx context.Context, username, password string) (token string, err error) {

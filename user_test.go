@@ -14,10 +14,10 @@ func TestCreateManagedUser(t *testing.T) {
 	})
 
 	user, err := client.User.CreateManaged(context.Background(), ManagedUser{
-		Username: "test-managed",
-		Fullname: "test-managed-full-name",
-		Email: "test-managed-email@localhost",
-		NewPassword: "test-managed-password",
+		Username:        "test-managed",
+		Fullname:        "test-managed-full-name",
+		Email:           "test-managed-email@localhost",
+		NewPassword:     "test-managed-password",
 		ConfirmPassword: "test-managed-password",
 	})
 	require.NoError(t, err)
@@ -41,10 +41,10 @@ func TestUpdateManagedUser(t *testing.T) {
 	})
 
 	user, err := client.User.CreateManaged(context.Background(), ManagedUser{
-		Username: "test-managed",
-		Fullname: "test-managed-full-name",
-		Email: "test-managed-email@localhost",
-		NewPassword: "test-managed-password",
+		Username:        "test-managed",
+		Fullname:        "test-managed-full-name",
+		Email:           "test-managed-email@localhost",
+		NewPassword:     "test-managed-password",
 		ConfirmPassword: "test-managed-password",
 	})
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestUpdateManagedUser(t *testing.T) {
 	updated, err := client.User.UpdateManaged(context.Background(), ManagedUser{
 		Username: user.Username,
 		Fullname: "test-managed-full-name-updated",
-		Email: user.Email,
+		Email:    user.Email,
 	})
 
 	require.NoError(t, err)
@@ -72,10 +72,10 @@ func TestGetAllManagedUsers(t *testing.T) {
 	})
 
 	user, err := client.User.CreateManaged(context.Background(), ManagedUser{
-		Username: "test-managed",
-		Fullname: "test-managed-full-name",
-		Email: "test-managed-email@localhost",
-		NewPassword: "test-managed-password",
+		Username:        "test-managed",
+		Fullname:        "test-managed-full-name",
+		Email:           "test-managed-email@localhost",
+		NewPassword:     "test-managed-password",
 		ConfirmPassword: "test-managed-password",
 	})
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestGetAllManagedUsers(t *testing.T) {
 	require.Equal(t, user.Fullname, "test-managed-full-name")
 	require.Equal(t, user.Email, "test-managed-email@localhost")
 
-	users, err := FetchAll(func (po PageOptions) (Page[ManagedUser], error) {
+	users, err := FetchAll(func(po PageOptions) (Page[ManagedUser], error) {
 		return client.User.GetAllManaged(context.Background(), po)
 	})
 
@@ -109,18 +109,18 @@ func TestDeleteManagedUser(t *testing.T) {
 	})
 
 	user, err := client.User.CreateManaged(context.Background(), ManagedUser{
-		Username: "test-managed",
-		Fullname: "test-managed-full-name",
-		Email: "test-managed-email@localhost",
-		NewPassword: "test-managed-password",
+		Username:        "test-managed",
+		Fullname:        "test-managed-full-name",
+		Email:           "test-managed-email@localhost",
+		NewPassword:     "test-managed-password",
 		ConfirmPassword: "test-managed-password",
 	})
 	require.NoError(t, err)
 	require.Equal(t, user.Username, "test-managed")
 	require.Equal(t, user.Fullname, "test-managed-full-name")
 	require.Equal(t, user.Email, "test-managed-email@localhost")
-	
-	users, err := FetchAll(func (po PageOptions) (Page[ManagedUser], error) {
+
+	users, err := FetchAll(func(po PageOptions) (Page[ManagedUser], error) {
 		return client.User.GetAllManaged(context.Background(), po)
 	})
 
@@ -132,8 +132,8 @@ func TestDeleteManagedUser(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	
-	users, err = FetchAll(func (po PageOptions) (Page[ManagedUser], error) {
+
+	users, err = FetchAll(func(po PageOptions) (Page[ManagedUser], error) {
 		return client.User.GetAllManaged(context.Background(), po)
 	})
 
