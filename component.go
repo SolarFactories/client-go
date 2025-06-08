@@ -158,7 +158,7 @@ func (cs ComponentService) Update(ctx context.Context, component Component) (c C
 }
 
 func (cs ComponentService) Delete(ctx context.Context, componentUUID uuid.UUID) (err error) {
-	err = cs.client.assertServerVersionAtLeast("3.3.0")
+	err = cs.client.assertServerVersionAtLeast("3.0.0")
 	if err != nil {
 		return
 	}
