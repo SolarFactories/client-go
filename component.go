@@ -127,7 +127,7 @@ func withComponentFilterOptions(filterOptions ComponentFilterOptions) requestOpt
 	}
 }
 
-func (cs ComponentService) Create(ctx context.Context, projectUUID string, component Component) (c Component, err error) {
+func (cs ComponentService) Create(ctx context.Context, projectUUID uuid.UUID, component Component) (c Component, err error) {
 	err = cs.client.assertServerVersionAtLeast("3.0.0")
 	if err != nil {
 		return
@@ -172,7 +172,7 @@ func (cs ComponentService) Delete(ctx context.Context, componentUUID uuid.UUID) 
 	return
 }
 
-func (cs ComponentService) GetProperties(ctx context.Context, componentUUID uuid.UUID) (p ComponentProperty, err error) {
+func (cs ComponentService) GetProperties(ctx context.Context, componentUUID uuid.UUID) (ps []ComponentProperty, err error) {
 	err = cs.client.assertServerVersionAtLeast("4.11.0")
 	if err != nil {
 		return
@@ -183,7 +183,7 @@ func (cs ComponentService) GetProperties(ctx context.Context, componentUUID uuid
 		return
 	}
 
-	_, err = cs.client.doRequest(req, &p)
+	_, err = cs.client.doRequest(req, &ps)
 	return
 }
 
