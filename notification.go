@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/google/uuid"
 )
@@ -76,7 +77,11 @@ const (
 )
 
 func (ns NotificationService) GetAllPublishers(ctx context.Context) (ps []NotificationPublisher, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodGet, "api/v1/notification/publisher")
 	if err != nil {
 		return
@@ -87,7 +92,11 @@ func (ns NotificationService) GetAllPublishers(ctx context.Context) (ps []Notifi
 }
 
 func (ns NotificationService) CreatePublisher(ctx context.Context, publisher NotificationPublisher) (p NotificationPublisher, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.6.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/publisher", withBody(publisher))
 	if err != nil {
 		return
@@ -98,7 +107,11 @@ func (ns NotificationService) CreatePublisher(ctx context.Context, publisher Not
 }
 
 func (ns NotificationService) UpdatePublisher(ctx context.Context, publisher NotificationPublisher) (p NotificationPublisher, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.6.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher", withBody(publisher))
 	if err != nil {
 		return
@@ -109,7 +122,11 @@ func (ns NotificationService) UpdatePublisher(ctx context.Context, publisher Not
 }
 
 func (ns NotificationService) DeletePubisher(ctx context.Context, publisherUUID uuid.UUID) (err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.6.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/publisher/%s", publisherUUID.String()))
 	if err != nil {
 		return
@@ -120,7 +137,11 @@ func (ns NotificationService) DeletePubisher(ctx context.Context, publisherUUID 
 }
 
 func (ns NotificationService) RestoreDefaultTemplates(ctx context.Context) (err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.6.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/restoreDefaultTemplates")
 	if err != nil {
 		return
@@ -131,7 +152,11 @@ func (ns NotificationService) RestoreDefaultTemplates(ctx context.Context) (err 
 }
 
 func (ns NotificationService) TestRule(ctx context.Context, ruleUUID uuid.UUID) (err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.12.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/publisher/test/%s", ruleUUID.String()))
 	if err != nil {
 		return
@@ -142,9 +167,14 @@ func (ns NotificationService) TestRule(ctx context.Context, ruleUUID uuid.UUID) 
 }
 
 func (ns NotificationService) TestSMTP(ctx context.Context, destination string) (err error) {
-	// TODO: Version Check
-	// TODO: `application/x-www-form-urlencoded` Request Content-Type.
-	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/test/smtp", withBody(destination))
+	err = ns.client.assertServerVersionAtLeast("3.4.0")
+	if err != nil {
+		return
+	}
+	values := url.Values{}
+	values.Set("destination", destination)
+
+	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/test/smtp", withBody(values))
 	if err != nil {
 		return
 	}
@@ -154,7 +184,11 @@ func (ns NotificationService) TestSMTP(ctx context.Context, destination string) 
 }
 
 func (ns NotificationService) AddProjectToRule(ctx context.Context, ruleUUID, projectUUID uuid.UUID) (r NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/rule/%s/project/%s", ruleUUID.String(), projectUUID.String()))
 	if err != nil {
 		return
@@ -165,7 +199,11 @@ func (ns NotificationService) AddProjectToRule(ctx context.Context, ruleUUID, pr
 }
 
 func (ns NotificationService) RemoveProjectFromRule(ctx context.Context, ruleUUID, projectUUID uuid.UUID) (r NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/rule/%s/project/%s", ruleUUID.String(), projectUUID.String()))
 	if err != nil {
 		return
@@ -176,7 +214,11 @@ func (ns NotificationService) RemoveProjectFromRule(ctx context.Context, ruleUUI
 }
 
 func (ns NotificationService) AddTeamToRule(ctx context.Context, ruleUUID, teamUUID uuid.UUID) (r NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.7.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/rule/%s/team/%s", ruleUUID.String(), teamUUID.String()))
 	if err != nil {
 		return
@@ -187,7 +229,11 @@ func (ns NotificationService) AddTeamToRule(ctx context.Context, ruleUUID, teamU
 }
 
 func (ns NotificationService) RemoveTeamFromRule(ctx context.Context, ruleUUID, teamUUID uuid.UUID) (r NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.7.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/rule/%s/team/%s", ruleUUID.String(), teamUUID.String()))
 	if err != nil {
 		return
@@ -213,6 +259,11 @@ func withGetAllRulesFilterOptions(filterOptions GetAllRulesFilterOptions) reques
 }
 
 func (ns NotificationService) GetAllRules(ctx context.Context, po PageOptions, so SortOptions, filterOptions GetAllRulesFilterOptions) (p Page[NotificationRule], err error) {
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodGet, "api/v1/notification/rule", withPageOptions(po), withSortOptions(so), withGetAllRulesFilterOptions(filterOptions))
 	if err != nil {
 		return
@@ -228,7 +279,11 @@ func (ns NotificationService) GetAllRules(ctx context.Context, po PageOptions, s
 }
 
 func (ns NotificationService) CreateRule(ctx context.Context, ruleReq NotificationRule) (ruleRes NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/rule", withBody(ruleReq))
 	if err != nil {
 		return
@@ -239,7 +294,11 @@ func (ns NotificationService) CreateRule(ctx context.Context, ruleReq Notificati
 }
 
 func (ns NotificationService) UpdateRule(ctx context.Context, ruleReq NotificationRule) (ruleRes NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/rule", withBody(ruleReq))
 	if err != nil {
 		return
@@ -250,7 +309,11 @@ func (ns NotificationService) UpdateRule(ctx context.Context, ruleReq Notificati
 }
 
 func (ns NotificationService) DeleteRule(ctx context.Context, rule NotificationRule) (err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("3.2.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodDelete, "api/v1/notification/rule", withBody(rule))
 	if err != nil {
 		return
@@ -261,7 +324,11 @@ func (ns NotificationService) DeleteRule(ctx context.Context, rule NotificationR
 }
 
 func (ns NotificationService) CreateScheduledRule(ctx context.Context, schedule CreateScheduledNotificationRuleRequest) (r NotificationRule, err error) {
-	// TODO: Version Check
+	err = ns.client.assertServerVersionAtLeast("4.13.0")
+	if err != nil {
+		return
+	}
+
 	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/rule/scheduled", withBody(schedule))
 	if err != nil {
 		return
