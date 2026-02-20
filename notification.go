@@ -121,7 +121,7 @@ func (ns NotificationService) UpdatePublisher(ctx context.Context, publisher Not
 	return
 }
 
-func (ns NotificationService) DeletePubisher(ctx context.Context, publisherUUID uuid.UUID) (err error) {
+func (ns NotificationService) DeletePublisher(ctx context.Context, publisherUUID uuid.UUID) (err error) {
 	err = ns.client.assertServerVersionAtLeast("4.6.0")
 	if err != nil {
 		return
