@@ -1,0 +1,272 @@
+package dtrack
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/google/uuid"
+)
+
+type NotificationService struct {
+	client *Client
+}
+
+type NotificationPublisher struct {
+	UUID             uuid.UUID `json:"uuid"`
+	Name             string    `json:"name"`
+	Description      string    `json:"description,omitempty"`
+	PublisherClass   string    `json:"publisherClass"`
+	Template         string    `json:"template,omitempty"`
+	TemplateMIMEType string    `json:"templateMimeType"`
+	DefaultPublisher bool      `json:"defaultPublisher"`
+}
+
+type NotificationRule struct {
+	UUID                    uuid.UUID                   `json:"uuid"`
+	Name                    string                      `json:"name"`
+	Enabled                 bool                        `json:"enabled"`
+	NotifyChildren          bool                        `json:"notifyChildren"`
+	LogSuccessfulPublish    bool                        `json:"logSuccessfulPublish"`
+	Scope                   NotificationRuleScope       `json:"scope"`
+	NotificationLevel       NotificationRuleLevel       `json:"notificationLevel,omitempty"`
+	NotifyOn                NotificationRuleNotifyOn    `json:"notifyOn,omitempty"`
+	TriggerType             NotificationRuleTriggerType `json:"triggerType"`
+	Message                 string                      `json:"message,omitempty"`
+	PublisherConfig         string                      `json:"publisherConfig,omitempty"`
+	ScheduleLastTriggeredAt int64                       `json:"scheduleLastTriggeredAt"`
+	ScheduleNextTriggerAt   int64                       `json:"scheduleNextTriggerAt"`
+	ScheduleCron            string                      `json:"scheduleCron"`
+	ScheduleSkipUnchanged   bool                        `json:"scheduleSkipUnchanged"`
+	Publisher               NotificationPublisher       `json:"publisher"`
+	Projects                []Project                   `json:"projects"`
+	Tags                    []Tag                       `json:"tags"`
+	Teams                   []Team                      `json:"teams"`
+}
+
+type CreateScheduledNotificationRuleRequest struct {
+	Name             string                `json:"name"`
+	Scope            NotificationRuleScope `json:"scope"`
+	NotificatonLevel NotificationRuleLevel `json:"notificationLevel"`
+	Publisher        NotificationPublisher `json:"publisher"`
+}
+
+type NotificationRuleScope string
+
+const (
+	NotificationRuleScopeSystem    NotificationRuleScope = "SYSTEM"
+	NotificationRuleScopePortfolio NotificationRuleScope = "PORTFOLIO"
+)
+
+type NotificationRuleLevel string
+
+const (
+	NotificationRuleLevelInformational NotificationRuleLevel = "INFORMATIONAL"
+	NotificationRuleLevelWarning       NotificationRuleLevel = "WARNING"
+	NotificationRuleLevelError         NotificationRuleLevel = "ERROR"
+)
+
+type NotificationRuleNotifyOn string
+
+type NotificationRuleTriggerType string
+
+const (
+	NotificationRuleTriggerTypeEvent    NotificationRuleTriggerType = "EVENT"
+	NotificationRuleTriggerTypeSchedule NotificationRuleTriggerType = "SCHEDULE"
+)
+
+func (ns NotificationService) GetAllPublishers(ctx context.Context) (ps []NotificationPublisher, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodGet, "api/v1/notification/publisher")
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &ps)
+	return
+}
+
+func (ns NotificationService) CreatePublisher(ctx context.Context, publisher NotificationPublisher) (p NotificationPublisher, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/publisher", withBody(publisher))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &p)
+	return
+}
+
+func (ns NotificationService) UpdatePublisher(ctx context.Context, publisher NotificationPublisher) (p NotificationPublisher, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher", withBody(publisher))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &p)
+	return
+}
+
+func (ns NotificationService) DeletePubisher(ctx context.Context, publisherUUID uuid.UUID) (err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/publisher/%s", publisherUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, nil)
+	return
+}
+
+func (ns NotificationService) RestoreDefaultTemplates(ctx context.Context) (err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/restoreDefaultTemplates")
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, nil)
+	return
+}
+
+func (ns NotificationService) TestRule(ctx context.Context, ruleUUID uuid.UUID) (err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/publisher/test/%s", ruleUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, nil)
+	return
+}
+
+func (ns NotificationService) TestSMTP(ctx context.Context, destination string) (err error) {
+	// TODO: Version Check
+	// TODO: `application/x-www-form-urlencoded` Request Content-Type.
+	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/test/smtp", withBody(destination))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, nil)
+	return
+}
+
+func (ns NotificationService) AddProjectToRule(ctx context.Context, ruleUUID, projectUUID uuid.UUID) (r NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/rule/%s/project/%s", ruleUUID.String(), projectUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &r)
+	return
+}
+
+func (ns NotificationService) RemoveProjectFromRule(ctx context.Context, ruleUUID, projectUUID uuid.UUID) (r NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/rule/%s/project/%s", ruleUUID.String(), projectUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &r)
+	return
+}
+
+func (ns NotificationService) AddTeamToRule(ctx context.Context, ruleUUID, teamUUID uuid.UUID) (r NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/notification/rule/%s/team/%s", ruleUUID.String(), teamUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &r)
+	return
+}
+
+func (ns NotificationService) RemoveTeamFromRule(ctx context.Context, ruleUUID, teamUUID uuid.UUID) (r NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/notification/rule/%s/team/%s", ruleUUID.String(), teamUUID.String()))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &r)
+	return
+}
+
+type GetAllRulesFilterOptions struct {
+	TriggerType NotificationRuleTriggerType
+}
+
+func withGetAllRulesFilterOptions(filterOptions GetAllRulesFilterOptions) requestOption {
+	return func(req *http.Request) error {
+		query := req.URL.Query()
+		if len(filterOptions.TriggerType) > 0 {
+			query.Set("triggerType", string(filterOptions.TriggerType))
+		}
+		req.URL.RawQuery = query.Encode()
+		return nil
+	}
+}
+
+func (ns NotificationService) GetAllRules(ctx context.Context, po PageOptions, so SortOptions, filterOptions GetAllRulesFilterOptions) (p Page[NotificationRule], err error) {
+	req, err := ns.client.newRequest(ctx, http.MethodGet, "api/v1/notification/rule", withPageOptions(po), withSortOptions(so), withGetAllRulesFilterOptions(filterOptions))
+	if err != nil {
+		return
+	}
+
+	res, err := ns.client.doRequest(req, &p.Items)
+	if err != nil {
+		return
+	}
+
+	p.TotalCount = res.TotalCount
+	return
+}
+
+func (ns NotificationService) CreateRule(ctx context.Context, ruleReq NotificationRule) (ruleRes NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/rule", withBody(ruleReq))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &ruleRes)
+	return
+}
+
+func (ns NotificationService) UpdateRule(ctx context.Context, ruleReq NotificationRule) (ruleRes NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/rule", withBody(ruleReq))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &ruleRes)
+	return
+}
+
+func (ns NotificationService) DeleteRule(ctx context.Context, rule NotificationRule) (err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodDelete, "api/v1/notification/rule", withBody(rule))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, nil)
+	return
+}
+
+func (ns NotificationService) CreateScheduledRule(ctx context.Context, schedule CreateScheduledNotificationRuleRequest) (r NotificationRule, err error) {
+	// TODO: Version Check
+	req, err := ns.client.newRequest(ctx, http.MethodPut, "api/v1/notification/rule/scheduled", withBody(schedule))
+	if err != nil {
+		return
+	}
+
+	_, err = ns.client.doRequest(req, &r)
+	return
+}
