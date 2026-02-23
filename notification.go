@@ -40,7 +40,7 @@ type NotificationRule struct {
 	ScheduleCron            string                      `json:"scheduleCron,omitempty"`
 	ScheduleSkipUnchanged   bool                        `json:"scheduleSkipUnchanged,omitempty"`
 	Publisher               NotificationPublisher       `json:"publisher,omitempty"`
-	Projects                []Project                   `json:"projects.omitempty"`
+	Projects                []Project                   `json:"projects,omitempty"`
 	Tags                    []Tag                       `json:"tags,omitempty"`
 	Teams                   []Team                      `json:"teams,omitempty"`
 }

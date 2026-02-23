@@ -191,3 +191,81 @@ func TestRules(t *testing.T) {
 		require.Zero(t, found.UUID)
 	}
 }
+
+func TestRuleProjects(t *testing.T) {
+	ctx := context.Background()
+	client := setUpContainer(t, testContainerOptions{
+		APIPermissions: []string{
+			PermissionSystemConfiguration,
+			PermissionPortfolioManagement,
+		},
+	})
+	publisher, err := client.Notification.CreatePublisher(ctx, NotificationPublisher{
+		Name:             "Test_Rule_Projects_Publisher",
+		Description:      "Test_Rule_Description",
+		PublisherClass:   "org.dependencytrack.notification.publisher.ConsolePublisher",
+		TemplateMIMEType: "text/plain",
+		Template:         "Test_Rule_Template",
+	})
+	require.NoError(t, err)
+	rule, err := client.Notification.CreateRule(ctx, NotificationRule{
+		Name:        "Test_Rule_Projects_Name",
+		Scope:       NotificationRuleScopePortfolio,
+		TriggerType: NotificationRuleTriggerTypeEvent,
+		Publisher:   publisher,
+	})
+	require.NoError(t, err)
+	project, err := client.Project.Create(ctx, Project{
+		Name: "Test_Rule_Projects_Project",
+	})
+	require.NoError(t, err)
+	// Add Project
+	{
+		updated, err := client.Notification.AddProjectToRule(ctx, rule.UUID, project.UUID)
+		require.NoError(t, err)
+		require.Equal(t, updated.UUID, rule.UUID)
+		require.Equal(t, updated.Projects, []Project{project})
+	}
+	// Fetch
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.NotZero(t, found.UUID)
+		require.Empty(t, project.Tags)
+		require.Empty(t, project.Properties)
+
+		project.Tags = nil
+		project.Properties = nil
+		require.Equal(t, found.Projects, []Project{project})
+	}
+	// Remove Project
+	{
+		updated, err := client.Notification.RemoveProjectFromRule(ctx, rule.UUID, project.UUID)
+		require.NoError(t, err)
+		require.Equal(t, updated, rule)
+	}
+	// Check Absence
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.Empty(t, found.Projects)
+	}
+}
