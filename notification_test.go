@@ -269,3 +269,84 @@ func TestRuleProjects(t *testing.T) {
 		require.Empty(t, found.Projects)
 	}
 }
+
+func TestRuleTeams(t *testing.T) {
+	ctx := context.Background()
+	client := setUpContainer(t, testContainerOptions{
+		APIPermissions: []string{
+			PermissionSystemConfiguration,
+			PermissionAccessManagement,
+		},
+	})
+	publisher, err := client.Notification.CreatePublisher(ctx, NotificationPublisher{
+		Name:             "Test_Rule_Tags_Publisher",
+		Description:      "Test_Rule_Description",
+		PublisherClass:   "org.dependencytrack.notification.publisher.SendMailPublisher",
+		TemplateMIMEType: "text/plain",
+		Template:         "Test_Rule_Template",
+	})
+	require.NoError(t, err)
+	rule, err := client.Notification.CreateRule(ctx, NotificationRule{
+		Name:        "Test_Rule_Tags_Name",
+		Scope:       NotificationRuleScopePortfolio,
+		TriggerType: NotificationRuleTriggerTypeEvent,
+		Publisher:   publisher,
+	})
+	require.NoError(t, err)
+	team, err := client.Team.Create(ctx, Team{
+		Name: "Test_Rule_Teams_Team",
+	})
+	require.NoError(t, err)
+	// Add Team
+	{
+		updated, err := client.Notification.AddTeamToRule(ctx, rule.UUID, team.UUID)
+		require.NoError(t, err)
+
+		require.Empty(t, team.APIKeys)
+		require.Empty(t, team.MappedOIDCGroups)
+		team.APIKeys = nil
+		team.MappedOIDCGroups = nil
+
+		require.Equal(t, updated.Teams, []Team{team})
+		updated.Teams = []Team{}
+		require.Equal(t, updated, rule)
+	}
+	// Fetch
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.Empty(t, team.Permissions)
+		team.Permissions = nil
+		require.Equal(t, found.Teams, []Team{team})
+	}
+	// Remove Team
+	{
+		updated, err := client.Notification.RemoveTeamFromRule(ctx, rule.UUID, team.UUID)
+		require.NoError(t, err)
+		require.Equal(t, updated, rule)
+	}
+	// Check Absence
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.Empty(t, found.Teams)
+	}
+}
