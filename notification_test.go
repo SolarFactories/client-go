@@ -84,3 +84,110 @@ func TestPublishers(t *testing.T) {
 		require.Zero(t, found.UUID)
 	}
 }
+
+func TestRules(t *testing.T) {
+	ctx := context.Background()
+	client := setUpContainer(t, testContainerOptions{
+		APIPermissions: []string{
+			PermissionSystemConfiguration,
+		},
+	})
+	publisher, err := client.Notification.CreatePublisher(ctx, NotificationPublisher{
+		Name:             "Test_Rule_Publisher",
+		Description:      "Test_Rule_Description",
+		PublisherClass:   "org.dependencytrack.notification.publisher.ConsolePublisher",
+		TemplateMIMEType: "text/plain",
+		Template:         "Test_Rule_Template",
+	})
+	require.NoError(t, err)
+	// Create
+	rule, err := client.Notification.CreateRule(ctx, NotificationRule{
+		Name:        "Test_Rule_Name",
+		Scope:       NotificationRuleScopePortfolio,
+		TriggerType: NotificationRuleTriggerTypeEvent,
+		Publisher:   publisher,
+	})
+	{
+		require.NoError(t, err)
+		require.NotZero(t, rule.UUID)
+		require.Equal(t, rule.Name, "Test_Rule_Name")
+		require.Equal(t, rule.Scope, NotificationRuleScopePortfolio)
+		require.Equal(t, rule.TriggerType, NotificationRuleTriggerTypeEvent)
+		require.Equal(t, rule.Enabled, true)
+		require.Equal(t, rule.NotifyChildren, true)
+		require.Equal(t, rule.LogSuccessfulPublish, false)
+		require.Empty(t, rule.NotificationLevel)
+		require.Empty(t, rule.NotifyOn)
+		require.Empty(t, rule.Message)
+		require.Empty(t, rule.PublisherConfig)
+		require.Empty(t, rule.ScheduleLastTriggeredAt)
+		require.Empty(t, rule.ScheduleNextTriggerAt)
+		require.Empty(t, rule.ScheduleCron)
+		require.Empty(t, rule.ScheduleSkipUnchanged)
+		require.Equal(t, rule.Publisher.UUID, publisher.UUID)
+		require.Empty(t, rule.Projects)
+		require.Empty(t, rule.Tags)
+		require.Empty(t, rule.Teams)
+	}
+	// Update
+	{
+		updatedReq := rule
+		updatedReq.PublisherConfig = "{\"Key\": \"Publisher Config\"}"
+		updatedRes, err := client.Notification.UpdateRule(ctx, updatedReq)
+		require.NoError(t, err)
+		require.Equal(t, updatedRes, updatedReq)
+	}
+	// Fetch
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.Equal(t, found.UUID, rule.UUID)
+		require.Equal(t, found.Name, rule.Name)
+		require.Equal(t, found.Enabled, rule.Enabled)
+		require.Equal(t, found.NotifyChildren, rule.NotifyChildren)
+		require.Equal(t, found.LogSuccessfulPublish, rule.LogSuccessfulPublish)
+		require.Equal(t, found.Scope, rule.Scope)
+		require.Equal(t, found.NotificationLevel, rule.NotificationLevel)
+		require.Equal(t, found.NotifyOn, rule.NotifyOn)
+		require.Equal(t, found.TriggerType, rule.TriggerType)
+		require.Equal(t, found.Message, rule.Message)
+		require.Equal(t, found.PublisherConfig, "{\"Key\": \"Publisher Config\"}")
+		require.Equal(t, found.ScheduleLastTriggeredAt, rule.ScheduleLastTriggeredAt)
+		require.Equal(t, found.ScheduleNextTriggerAt, rule.ScheduleNextTriggerAt)
+		require.Equal(t, found.ScheduleCron, rule.ScheduleCron)
+		require.Equal(t, found.ScheduleSkipUnchanged, rule.ScheduleSkipUnchanged)
+		require.Equal(t, found.Publisher, rule.Publisher)
+		require.Equal(t, found.Projects, rule.Projects)
+		require.Equal(t, found.Tags, rule.Tags)
+		require.Equal(t, found.Teams, rule.Teams)
+	}
+	// Delete
+	{
+		err := client.Notification.DeleteRule(ctx, rule)
+		require.NoError(t, err)
+	}
+	// Check Absence
+	{
+		allRules, err := FetchAll(func(po PageOptions) (Page[NotificationRule], error) {
+			return client.Notification.GetAllRules(ctx, po, SortOptions{}, GetAllRulesFilterOptions{})
+		})
+		require.NoError(t, err)
+		found := NotificationRule{}
+		for _, rule_ := range allRules {
+			if rule_.UUID == rule.UUID {
+				found = rule_
+				break
+			}
+		}
+		require.Zero(t, found.UUID)
+	}
+}

@@ -31,18 +31,18 @@ type NotificationRule struct {
 	LogSuccessfulPublish    bool                        `json:"logSuccessfulPublish"`
 	Scope                   NotificationRuleScope       `json:"scope"`
 	NotificationLevel       NotificationRuleLevel       `json:"notificationLevel,omitempty"`
-	NotifyOn                NotificationRuleNotifyOn    `json:"notifyOn,omitempty"`
+	NotifyOn                []NotificationRuleNotifyOn  `json:"notifyOn,omitempty"`
 	TriggerType             NotificationRuleTriggerType `json:"triggerType"`
 	Message                 string                      `json:"message,omitempty"`
 	PublisherConfig         string                      `json:"publisherConfig,omitempty"`
-	ScheduleLastTriggeredAt int64                       `json:"scheduleLastTriggeredAt"`
-	ScheduleNextTriggerAt   int64                       `json:"scheduleNextTriggerAt"`
-	ScheduleCron            string                      `json:"scheduleCron"`
-	ScheduleSkipUnchanged   bool                        `json:"scheduleSkipUnchanged"`
-	Publisher               NotificationPublisher       `json:"publisher"`
-	Projects                []Project                   `json:"projects"`
-	Tags                    []Tag                       `json:"tags"`
-	Teams                   []Team                      `json:"teams"`
+	ScheduleLastTriggeredAt int64                       `json:"scheduleLastTriggeredAt,omitempty"`
+	ScheduleNextTriggerAt   int64                       `json:"scheduleNextTriggerAt,omitempty"`
+	ScheduleCron            string                      `json:"scheduleCron,omitempty"`
+	ScheduleSkipUnchanged   bool                        `json:"scheduleSkipUnchanged,omitempty"`
+	Publisher               NotificationPublisher       `json:"publisher,omitempty"`
+	Projects                []Project                   `json:"projects.omitempty"`
+	Tags                    []Tag                       `json:"tags,omitempty"`
+	Teams                   []Team                      `json:"teams,omitempty"`
 }
 
 type CreateScheduledNotificationRuleRequest struct {
