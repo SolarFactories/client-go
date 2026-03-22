@@ -46,10 +46,10 @@ type NotificationRule struct {
 }
 
 type CreateScheduledNotificationRuleRequest struct {
-	Name             string                `json:"name"`
-	Scope            NotificationRuleScope `json:"scope"`
-	NotificatonLevel NotificationRuleLevel `json:"notificationLevel"`
-	Publisher        NotificationPublisher `json:"publisher"`
+	Name              string                `json:"name"`
+	Scope             NotificationRuleScope `json:"scope"`
+	NotificationLevel NotificationRuleLevel `json:"notificationLevel"`
+	Publisher         NotificationPublisher `json:"publisher"`
 }
 
 type NotificationRuleScope string
