@@ -56,7 +56,10 @@ func (ps ProjectPropertyService) Update(ctx context.Context, projectUUID uuid.UU
 }
 
 func (ps ProjectPropertyService) Delete(ctx context.Context, projectUUID uuid.UUID, groupName, propertyName string) (err error) {
-	property := ProjectProperty{
+	property := struct {
+		Group string `json:"groupName"`
+		Name  string `json:"propertyName"`
+	}{
 		Group: groupName,
 		Name:  propertyName,
 	}
