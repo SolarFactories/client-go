@@ -18,6 +18,11 @@ func TestLicenseGetAll(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(licenses.Items), po.PageSize)
 	require.NotZero(t, licenses.TotalCount)
+	for _, license := range licenses.Items {
+		require.NotZero(t, license.UUID)
+		require.NotEmpty(t, license.Name)
+		require.NotEmpty(t, license.LicenseID)
+	}
 }
 
 func TestLicenseLifecycle(t *testing.T) {
