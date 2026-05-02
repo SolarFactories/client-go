@@ -46,6 +46,7 @@ type Client struct {
 	Health            HealthService
 	LDAP              LDAPService
 	License           LicenseService
+	LicenseGroup      LicenseGroupService
 	Metrics           MetricsService
 	OIDC              OIDCService
 	Permission        PermissionService
@@ -99,6 +100,7 @@ func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
 	client.Health = HealthService{client: &client}
 	client.LDAP = LDAPService{client: &client}
 	client.License = LicenseService{client: &client}
+	client.LicenseGroup = LicenseGroupService{client: &client}
 	client.Metrics = MetricsService{client: &client}
 	client.OIDC = OIDCService{client: &client}
 	client.Permission = PermissionService{client: &client}
