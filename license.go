@@ -91,7 +91,7 @@ func (ls LicenseService) Delete(ctx context.Context, licenseSPDX string) (err er
 	return
 }
 
-func (ls LicenseService) GetConcise(ctx context.Context) (p Page[License], err error) {
+func (ls LicenseService) GetConcise(ctx context.Context) (licenses []License, err error) {
 	err = ls.client.assertServerVersionAtLeast("3.4.0")
 	if err != nil {
 		return
@@ -102,10 +102,6 @@ func (ls LicenseService) GetConcise(ctx context.Context) (p Page[License], err e
 		return
 	}
 
-	res, err := ls.client.doRequest(req, &p.Items)
-	if err != nil {
-		return
-	}
-	p.TotalCount = res.TotalCount
+	_, err = ls.client.doRequest(req, &licenses)
 	return
 }
