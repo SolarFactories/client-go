@@ -13,7 +13,11 @@ func TestLicenseGroupGetAll(t *testing.T) {
 		PageSize:   4,
 		PageNumber: 1,
 	}
-	client := setUpContainer(t, testContainerOptions{})
+	client := setUpContainer(t, testContainerOptions{
+		APIPermissions: []string{
+			PermissionPolicyManagement,
+		},
+	})
 
 	groups, err := client.LicenseGroup.GetAll(context.Background(), po, SortOptions{})
 	require.NoError(t, err)
