@@ -10,15 +10,15 @@ import (
 type License struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Name                string    `json:"name"`
-	Text                string    `json:"text"`
-	Template            string    `json:"template"`
-	Header              string    `json:"header"`
-	Comment             string    `json:"comment"`
+	Text                string    `json:"licenseText,omitempty"`
+	Template            string    `json:"standardLicenseTemplate,omitempty"`
+	Header              string    `json:"standardLicenseHeader,omitempty"`
+	Comment             string    `json:"licenseComments,omitempty"`
 	LicenseID           string    `json:"licenseId"`
 	OSIApproved         bool      `json:"isOsiApproved"`
 	FSFLibre            bool      `json:"isFsfLibre"`
 	DeprecatedLicenseID bool      `json:"isDeprecatedLicenseId"`
-	SeeAlso             []string  `json:"seeAlso"`
+	SeeAlso             []string  `json:"seeAlso,omitempty"`
 }
 
 type LicenseService struct {
