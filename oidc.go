@@ -243,7 +243,7 @@ func (s OIDCService) Login(ctx context.Context, tokens OIDCTokens) (token string
 	body.Set("idToken", tokens.ID)
 	body.Set("accessToken", tokens.Access)
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, "api/v1/user/oidc/login", withBody(body))
+	req, err := s.client.newRequest(ctx, http.MethodPost, "api/v1/user/oidc/login", withBody(body), withAcceptContentType("text/plain"))
 	if err != nil {
 		return
 	}
