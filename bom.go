@@ -59,7 +59,12 @@ func (bs BOMService) ExportComponent(ctx context.Context, componentUUID uuid.UUI
 		return
 	}
 
-	req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+	switch format {
+	case BOMFormatJSON:
+		req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+	case BOMFormatXML:
+		req.Header.Set("Accept", "application/vnd.cyclonedx+xml")
+	}
 
 	_, err = bs.client.doRequest(req, &bom)
 	return
@@ -79,7 +84,12 @@ func (bs BOMService) ExportProject(ctx context.Context, projectUUID uuid.UUID, f
 		return
 	}
 
-	req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+	switch format {
+	case BOMFormatJSON:
+		req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+	case BOMFormatXML:
+		req.Header.Set("Accept", "application/vnd.cyclonedx+xml")
+	}
 
 	_, err = bs.client.doRequest(req, &bom)
 	return
