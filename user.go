@@ -71,7 +71,7 @@ func (us UserService) ForceChangePassword(ctx context.Context, username, passwor
 	body.Set("newPassword", newPassword)
 	body.Set("confirmPassword", newPassword)
 
-	req, err := us.client.newRequest(ctx, http.MethodPost, "api/v1/user/forceChangePassword", withBody(body))
+	req, err := us.client.newRequest(ctx, http.MethodPost, "api/v1/user/forceChangePassword", withBody(body), withAcceptContentType("text/plain"))
 	if err != nil {
 		return
 	}
