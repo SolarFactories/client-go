@@ -16,7 +16,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -355,7 +354,7 @@ func (c Client) doRequest(req *http.Request, v interface{}) (a apiResponse, err 
 		switch vt := v.(type) {
 		case *string:
 			expectedContentTypes := []string{"text/plain", "application/vnd.cyclonedx+json", "application/vnd.cyclonedx+xml"}
-			if !slices.Contains(expectedContentTypes, contentType) {
+			if !sliceContains(expectedContentTypes, contentType) {
 				err = fmt.Errorf("Expected %s content-type. Received %s.", strings.Join(expectedContentTypes, ", "), contentType)
 				return
 			}
