@@ -54,16 +54,17 @@ func (bs BOMService) ExportComponent(ctx context.Context, componentUUID uuid.UUI
 		params["format"] = string(format)
 	}
 
-	req, err := bs.client.newRequest(ctx, http.MethodGet, fmt.Sprintf("api/v1/bom/cyclonedx/component/%s", componentUUID), withParams(params))
-	if err != nil {
-		return
-	}
-
+	var acceptContentType string
 	switch format {
 	case BOMFormatJSON:
-		req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+		acceptContentType = "application/vnd.cyclonedx+json"
 	case BOMFormatXML:
-		req.Header.Set("Accept", "application/vnd.cyclonedx+xml")
+		acceptContentType = "application/vnd.cyclonedx+xml"
+	}
+
+	req, err := bs.client.newRequest(ctx, http.MethodGet, fmt.Sprintf("api/v1/bom/cyclonedx/component/%s", componentUUID), withParams(params), withAcceptContentType(acceptContentType))
+	if err != nil {
+		return
 	}
 
 	_, err = bs.client.doRequest(req, &bom)
@@ -79,16 +80,17 @@ func (bs BOMService) ExportProject(ctx context.Context, projectUUID uuid.UUID, f
 		params["variant"] = string(variant)
 	}
 
-	req, err := bs.client.newRequest(ctx, http.MethodGet, fmt.Sprintf("api/v1/bom/cyclonedx/project/%s", projectUUID), withParams(params))
-	if err != nil {
-		return
-	}
-
+	var acceptContentType string
 	switch format {
 	case BOMFormatJSON:
-		req.Header.Set("Accept", "application/vnd.cyclonedx+json")
+		acceptContentType = "application/vnd.cyclonedx+json"
 	case BOMFormatXML:
-		req.Header.Set("Accept", "application/vnd.cyclonedx+xml")
+		acceptContentType = "application/vnd.cyclonedx+xml"
+	}
+
+	req, err := bs.client.newRequest(ctx, http.MethodGet, fmt.Sprintf("api/v1/bom/cyclonedx/project/%s", projectUUID), withParams(params), withAcceptContentType(acceptContentType))
+	if err != nil {
+		return
 	}
 
 	_, err = bs.client.doRequest(req, &bom)
