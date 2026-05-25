@@ -351,6 +351,7 @@ func (c Client) doRequest(req *http.Request, v interface{}) (a apiResponse, err 
 
 	if v != nil {
 		contentType := res.Header.Get("Content-Type")
+		contentType = strings.SplitN(contentType, ";", 2)[0]
 		switch vt := v.(type) {
 		case *string:
 			expectedContentTypes := []string{"text/plain", "application/vnd.cyclonedx+json", "application/vnd.cyclonedx+xml"}
