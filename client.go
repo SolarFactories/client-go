@@ -27,6 +27,7 @@ const (
 )
 
 type contextKey string
+type Timestamp = int64
 
 type Client struct {
 	httpClient *http.Client
@@ -35,34 +36,35 @@ type Client struct {
 	debug      bool
 	about      About
 
-	About             AboutService
-	ACL               ACLService
-	Analysis          AnalysisService
-	BOM               BOMService
-	Component         ComponentService
-	Config            ConfigService
-	Event             EventService
-	Finding           FindingService
-	Health            HealthService
-	LDAP              LDAPService
-	License           LicenseService
-	LicenseGroup      LicenseGroupService
-	Metrics           MetricsService
-	Notification      NotificationService
-	OIDC              OIDCService
-	Permission        PermissionService
-	Policy            PolicyService
-	PolicyCondition   PolicyConditionService
-	PolicyViolation   PolicyViolationService
-	Project           ProjectService
-	ProjectProperty   ProjectPropertyService
-	Repository        RepositoryService
-	Tag               TagService
-	Team              TeamService
-	User              UserService
-	VEX               VEXService
-	ViolationAnalysis ViolationAnalysisService
-	Vulnerability     VulnerabilityService
+	About               AboutService
+	ACL                 ACLService
+	Analysis            AnalysisService
+	BOM                 BOMService
+	Component           ComponentService
+	Config              ConfigService
+	Event               EventService
+	Finding             FindingService
+	Health              HealthService
+	LDAP                LDAPService
+	License             LicenseService
+	LicenseGroup        LicenseGroupService
+	Metrics             MetricsService
+	Notification        NotificationService
+	OIDC                OIDCService
+	Permission          PermissionService
+	Policy              PolicyService
+	PolicyCondition     PolicyConditionService
+	PolicyViolation     PolicyViolationService
+	Project             ProjectService
+	ProjectProperty     ProjectPropertyService
+	Repository          RepositoryService
+	Tag                 TagService
+	Team                TeamService
+	User                UserService
+	VEX                 VEXService
+	ViolationAnalysis   ViolationAnalysisService
+	Vulnerability       VulnerabilityService
+	VulnerabilityPolicy VulnerabilityPolicyService
 }
 
 func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
@@ -118,6 +120,7 @@ func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
 	client.VEX = VEXService{client: &client}
 	client.ViolationAnalysis = ViolationAnalysisService{client: &client}
 	client.Vulnerability = VulnerabilityService{client: &client}
+	client.VulnerabilityPolicy = VulnerabilityPolicyService{client: &client}
 
 	client.about, err = client.About.Get(context.Background())
 	if err != nil {
@@ -144,6 +147,22 @@ func (c Client) isServerVersionAtLeast(targetVersion string) bool {
 func (c Client) assertServerVersionAtLeast(targetVersion string) error {
 	if !c.isServerVersionAtLeast(targetVersion) {
 		return fmt.Errorf("server version must be at least %s, but is %s", targetVersion, c.about.Version)
+	}
+
+	return nil
+}
+
+func (c Client) isServerVersionBefore(targetVersion string) bool {
+	// semver requires versions to be prefixed with "v",
+	// and doesn't support "-SNAPSHOT" suffixes.
+	targetVersionNormalized := fmt.Sprintf("v%s", targetVersion)
+	actualVersionNormalized := fmt.Sprintf("v%s", strings.TrimSuffix(c.about.Version, "-SNAPSHOT"))
+	return semver.Compare(targetVersionNormalized, actualVersionNormalized) > 0
+}
+
+func (c Client) assertServerVersionBefore(targetVersion string) error {
+	if !c.isServerVersionBefore(targetVersion) {
+		return fmt.Errorf("server version must be before %s, but is %s", targetVersion, c.about.Version)
 	}
 
 	return nil
@@ -272,6 +291,24 @@ type Page[T any] struct {
 	Items      []T // Items on this page
 	TotalCount int // Total number of items
 }
+
+type PageV5[T any] struct {
+	Items         []T          `json:"items"`
+	NextPageToken string       `json:"next_page_token,omitempty"`
+	TotalCount    TotalCountV5 `json:"total"`
+}
+
+type TotalCountV5 struct {
+	Count int64 `json:"count"`
+	Type  TotalCountV5Type
+}
+
+type TotalCountV5Type string
+
+const (
+	TotalCountV5TypeAtLeast = "AT_LEAST"
+	TotalCountV5TypeExact   = "EXACT"
+)
 
 type PageOptions struct {
 	Offset     int // Offset of the elements to return

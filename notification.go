@@ -145,6 +145,10 @@ func (ns NotificationService) RestoreDefaultTemplates(ctx context.Context) (err 
 	if err != nil {
 		return
 	}
+	err = ns.client.assertServerVersionBefore("5.0.0")
+	if err != nil {
+		return
+	}
 
 	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/restoreDefaultTemplates")
 	if err != nil {
@@ -175,10 +179,17 @@ func (ns NotificationService) TestSMTP(ctx context.Context, destination string) 
 	if err != nil {
 		return
 	}
+
 	values := url.Values{}
 	values.Set("destination", destination)
+	var path string
+	if ns.client.isServerVersionAtLeast("5.0.0") {
+		path = "api/v2/extension-points/notification.publisher/extensions/email/test"
+	} else {
+		path = "api/v1/notification/publisher/test/smtp"
+	}
 
-	req, err := ns.client.newRequest(ctx, http.MethodPost, "api/v1/notification/publisher/test/smtp", withBody(values))
+	req, err := ns.client.newRequest(ctx, http.MethodPost, path, withBody(values))
 	if err != nil {
 		return
 	}
