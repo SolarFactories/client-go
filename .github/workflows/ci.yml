@@ -57,4 +57,15 @@ jobs:
           set -euxo pipefail
           TEST_LINES=$(grep -r "func Test" *.go | cut -d' ' -f2 | cut -d'(' -f1)
           TESTS_JSON=$(echo $TEST_LINES | jq -R '.' | jq --slurp '[.[]]' -c)
-          echo $TESTS_JSON
+          echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
+
+  run_tests:
+    runs-on: ubuntu-latest
+    needs:
+      - list_tests
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJSON(needs.list_tests.outputs.tests) }}
+    steps:
+      - run: echo ${{ matrix.test }}
