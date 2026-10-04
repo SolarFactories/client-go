@@ -67,4 +67,4 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.list_tests.outputs.tests) }}
     steps:
-      - run: echo ${{ matrix.test }}
+      - run: go test -v -cover -run ${{ matrix.test }}
