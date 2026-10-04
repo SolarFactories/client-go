@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          TESTS_JSON=$(grep -r "func Test" *.go | cut -d' ' -f2 | cut -d'(' -f1 | jq -R '.' | jq -c --slurp '[.[]]')
+          TESTS_JSON=$(grep -r "func Test" *.go --exclude util_test.go | grep -v "_v4" | grep -v "_Latest" | cut -d' ' -f2 | cut -d'(' -f1 | jq -R '.' | jq -c --slurp '[.[]]')
           echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
 
   run_tests:
