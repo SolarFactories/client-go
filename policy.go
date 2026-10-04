@@ -115,6 +115,11 @@ func (ps PolicyService) DeleteProject(ctx context.Context, policyUUID, projectUU
 }
 
 func (ps PolicyService) AddTag(ctx context.Context, policyUUID uuid.UUID, tagName string) (p Policy, err error) {
+	if ps.client.isServerVersionAtLeast("5.0.0") {
+		err = ps.client.Tag.TagPolicies(ctx, tagName, []uuid.UUID{policyUUID})
+		return
+	}
+
 	req, err := ps.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v1/policy/%s/tag/%s", policyUUID, tagName))
 	if err != nil {
 		return
@@ -125,6 +130,11 @@ func (ps PolicyService) AddTag(ctx context.Context, policyUUID uuid.UUID, tagNam
 }
 
 func (ps PolicyService) DeleteTag(ctx context.Context, policyUUID uuid.UUID, tagName string) (p Policy, err error) {
+	if ps.client.isServerVersionAtLeast("5.0.0") {
+		err = ps.client.Tag.UntagPolicies(ctx, tagName, []uuid.UUID{policyUUID})
+		return
+	}
+
 	req, err := ps.client.newRequest(ctx, http.MethodDelete, fmt.Sprintf("api/v1/policy/%s/tag/%s", policyUUID, tagName))
 	if err != nil {
 		return
