@@ -66,6 +66,16 @@ jobs:
       fail-fast: false
       matrix:
         test: ${{ fromJSON(needs.list_tests.outputs.tests) }}
+        api:
+          #- 4.14.4-alpine
+          #- 5.0.5
+          - 5.1.1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Configure image
+        # Test container defaults to using `:latest`, so provide the image to that tag.
+        # TODO: Efficiency: Some tests specify a version (all end either `_v4_xx` or `_Latest`), where currently they are run against all versions.
+        run: |
+          docker image pull dependencytrack/apiserver:${{ matrix.api }}
+          docker image tag dependencytrack/apiserver:${{ matrix.api }} dependencytrack/apiserver:latest
       - run: go test -v -cover -run ${{ matrix.test }}
