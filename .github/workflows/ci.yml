@@ -68,7 +68,7 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.list_tests.outputs.tests) }}
         api:
-          #- 4.14.4-alpine
+          - 4.14.4-alpine
           #- 5.0.5
           - 5.1.1
     steps:
@@ -97,11 +97,14 @@ jobs:
           --rm \
           ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
           while [ "$(docker inspect -f {{.State.Health.Status}} api)" != 'healthy' ]; do sleep 1; done
-      - name: Run v5 tests
+      - name: Run test v5
         if: ${{ startsWith(matrix.api, '5.') }}
         run: go test -v -cover -run ${{ matrix.test }}
         env:
           DEPENDENCYTRACK_API_HOST: "http://localhost:8080"
+      - name: Run test v4
+        if: ${{ startsWith(matrix.api, '4.') }}
+        run: go test -v -cover -run ${{ matrix.test }}
       - name: API Logs
         if: ${{ startsWith(matrix.api, '5.') }}
         run: docker logs api
