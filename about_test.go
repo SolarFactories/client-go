@@ -47,86 +47,72 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 		version = options.Version
 	}
 
-	if len(host) > 0 && len(key) > 0 {
-		tmpClient, err := NewClient(host, WithAPIKey(key))
-		require.NoError(t, err)
-		about, err := tmpClient.About.Get(ctx)
-		require.NoError(t, err)
-		if version != "latest" {
-			require.Equal(t, version, about.Version)
-		}
-		team, err := tmpClient.Team.Create(ctx, Team{Name: "test"})
+	if len(host) == 0 {
+		container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "dependencytrack/apiserver:" + version,
+				Env: map[string]string{
+					"JAVA_OPTIONS":                         "-Xmx1g",
+					"SYSTEM_REQUIREMENT_CHECK_ENABLED":     "false",
+					"TELEMETRY_SUBMISSION_ENABLED_DEFAULT": "false",
+				},
+				ExposedPorts: []string{"8080/tcp"},
+				WaitingFor:   wait.ForLog("Dependency-Track is ready"),
+			},
+			Started: true,
+		})
 		require.NoError(t, err)
 
 		t.Cleanup(func() {
-			err = tmpClient.Team.Delete(ctx, team)
+			err = container.Terminate(ctx)
 			if err != nil {
-				log.Fatalf("failed to delete temporary team in test: %v", err)
+				log.Fatalf("failed to terminate container: %v", err)
 			}
 		})
 
-		for _, permissionName := range options.APIPermissions {
-			_, err = tmpClient.Permission.AddPermissionToTeam(ctx, Permission{Name: permissionName}, team.UUID)
-			require.NoError(t, err)
-		}
-
-		apiKey, err := tmpClient.Team.GenerateAPIKey(ctx, team.UUID)
+		host, err = container.Endpoint(ctx, "http")
 		require.NoError(t, err)
-
-		newClient, err := NewClient(host, WithAPIKey(apiKey.Key))
-		require.NoError(t, err)
-		return newClient
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image: "dependencytrack/apiserver:" + version,
-			Env: map[string]string{
-				"JAVA_OPTIONS":                         "-Xmx1g",
-				"SYSTEM_REQUIREMENT_CHECK_ENABLED":     "false",
-				"TELEMETRY_SUBMISSION_ENABLED_DEFAULT": "false",
-			},
-			ExposedPorts: []string{"8080/tcp"},
-			WaitingFor:   wait.ForLog("Dependency-Track is ready"),
-		},
-		Started: true,
-	})
-	require.NoError(t, err)
+	var tmpClient *Client
+	var err error
+	if len(key) > 0 {
+		tmpClient, err = NewClient(host, WithAPIKey(key))
+		require.NoError(t, err)
+	} else {
+		client, err := NewClient(host)
+		require.NoError(t, err)
 
+		err = client.User.ForceChangePassword(ctx, "admin", "admin", "test")
+		require.NoError(t, err)
+
+		bearerToken, err := client.User.Login(ctx, "admin", "test")
+		require.NoError(t, err)
+
+		tmpClient, err = NewClient(host, WithBearerToken(bearerToken))
+		require.NoError(t, err)
+	}
+	if version != "latest" {
+		require.Equal(t, tmpClient.about.Version, version)
+	}
+	team, err := tmpClient.Team.Create(ctx, Team{Name: "test"})
+	require.NoError(t, err)
 	t.Cleanup(func() {
-		err = container.Terminate(ctx)
+		err = tmpClient.Team.Delete(ctx, team)
 		if err != nil {
-			log.Fatalf("failed to terminate container: %v", err)
+			log.Fatalf("failed to delete temporary team: %v", err)
 		}
 	})
-
-	apiURL, err := container.Endpoint(ctx, "http")
-	require.NoError(t, err)
-
-	client, err := NewClient(apiURL)
-	require.NoError(t, err)
-
-	err = client.User.ForceChangePassword(ctx, "admin", "admin", "test")
-	require.NoError(t, err)
-
-	bearerToken, err := client.User.Login(ctx, "admin", "test")
-	require.NoError(t, err)
-
-	client, err = NewClient(apiURL, WithBearerToken(bearerToken))
-	require.NoError(t, err)
-
-	team, err := client.Team.Create(ctx, Team{Name: "test"})
-	require.NoError(t, err)
 
 	for _, permissionName := range options.APIPermissions {
-		_, err = client.Permission.AddPermissionToTeam(ctx, Permission{Name: permissionName}, team.UUID)
+		_, err = tmpClient.Permission.AddPermissionToTeam(ctx, Permission{Name: permissionName}, team.UUID)
 		require.NoError(t, err)
 	}
 
-	apiKey, err := client.Team.GenerateAPIKey(ctx, team.UUID)
+	apiKey, err := tmpClient.Team.GenerateAPIKey(ctx, team.UUID)
 	require.NoError(t, err)
 
-	client, err = NewClient(apiURL, WithAPIKey(apiKey.Key))
+	client, err := NewClient(host, WithAPIKey(apiKey.Key))
 	require.NoError(t, err)
 
 	return client
