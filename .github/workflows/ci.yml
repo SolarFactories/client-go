@@ -73,14 +73,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start Containers v5
-        if: ${{ startsWith(matrix.api, "5.") }}
+        if: ${{ startsWith(matrix.api, '5.') }}
         shell: bash
         run: |
           docker image pull postgres:18-alpine
           docker image pull ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
 
           docker run --detach postgres:18-alpine --env 'POSTGRES_DB=dtrack' --env 'POSTGRES_USER=dtrack' --env 'POSTGRES_PASSWORD=dtrack' --publish '5432:5432' --name postgres
-          while [ "$(docker inspect -f {{.State.Health.Status}} postgres)"  != "healthy" ]; do sleep 1; done
+          while [ "$(docker inspect -f {{.State.Health.Status}} postgres)" != 'healthy' ]; do sleep 1; done
 
           docker run --detach \
           --env 'DT_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/dtrack' \
@@ -95,14 +95,14 @@ jobs:
           --read-only \
           --rm \
           ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
-          while [ "$(docker inspect -f {{.State.Health.Status}} api)"  != "healthy" ]; do sleep 1; done
+          while [ "$(docker inspect -f {{.State.Health.Status}} api)" != 'healthy' ]; do sleep 1; done
       - name: Run v5 tests
-        if: ${{ startsWith(matrix.api, "5.") }}
+        if: ${{ startsWith(matrix.api, '5.') }}
         run: go test -v -cover -run ${{ matrix.test }}
         env:
           DEPENDENCYTRACK_HOST: "https://localhost:8080"
       - name: API Logs
-        if: ${{ startsWith(matrix.api, "5.") }}
+        if: ${{ startsWith(matrix.api, '5.') }}
         run: docker logs api
       - name: DB Logs
-        if: ${{ startsWith(matrix.api, "5.") }}
+        if: ${{ startsWith(matrix.api, '5.') }}
