@@ -39,7 +39,7 @@ type testContainerOptions struct {
 
 func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 	ctx := context.Background()
-	host := os.Getenv("DEPENDENCTRACK_API_HOST")
+	host := os.Getenv("DEPENDENCYTRACK_API_HOST")
 	key := os.Getenv("DEPENDENCYTRACK_API_KEY")
 
 	version := "latest"
