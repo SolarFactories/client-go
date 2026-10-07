@@ -2,7 +2,8 @@ package dtrack
 
 import (
 	"context"
-	"fmt"
+	"os"
+
 	"github.com/google/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -38,24 +39,59 @@ type testContainerOptions struct {
 
 func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 	ctx := context.Background()
+	host := os.Getenv("DEPENDENCTRACK_API_HOST")
+	key := os.Getenv("DEPENDENCYTRACK_API_KEY")
 
 	version := "latest"
 	if options.Version != "" {
 		version = options.Version
 	}
 
+	if len(host) > 0 && len(key) > 0 {
+		tmpClient, err := NewClient(host, WithAPIKey(key))
+		require.NoError(t, err)
+		about, err := tmpClient.About.Get(ctx)
+		require.NoError(t, err)
+		if version != "latest" {
+			require.Equal(t, version, about.Version)
+		}
+		team, err := tmpClient.Team.Create(ctx, Team{Name: "test"})
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			err = tmpClient.Team.Delete(ctx, team)
+			if err != nil {
+				log.Fatalf("failed to delete temporary team in test: %v", err)
+			}
+		})
+
+		for _, permissionName := range options.APIPermissions {
+			_, err = tmpClient.Permission.AddPermissionToTeam(ctx, Permission{Name: permissionName}, team.UUID)
+			require.NoError(t, err)
+		}
+
+		apiKey, err := tmpClient.Team.GenerateAPIKey(ctx, team.UUID)
+		require.NoError(t, err)
+
+		newClient, err := NewClient(host, WithAPIKey(apiKey.Key))
+		require.NoError(t, err)
+		return newClient
+	}
+
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image: fmt.Sprintf("dependencytrack/apiserver:%s", version),
+			Image: "dependencytrack/apiserver:" + version,
 			Env: map[string]string{
-				"JAVA_OPTIONS":                     "-Xmx1g",
-				"SYSTEM_REQUIREMENT_CHECK_ENABLED": "false",
+				"JAVA_OPTIONS":                         "-Xmx1g",
+				"SYSTEM_REQUIREMENT_CHECK_ENABLED":     "false",
+				"TELEMETRY_SUBMISSION_ENABLED_DEFAULT": "false",
 			},
 			ExposedPorts: []string{"8080/tcp"},
 			WaitingFor:   wait.ForLog("Dependency-Track is ready"),
 		},
 		Started: true,
 	})
+	require.NoError(t, err)
 
 	t.Cleanup(func() {
 		err = container.Terminate(ctx)
@@ -63,7 +99,6 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 			log.Fatalf("failed to terminate container: %v", err)
 		}
 	})
-	require.NoError(t, err)
 
 	apiURL, err := container.Endpoint(ctx, "http")
 	require.NoError(t, err)
