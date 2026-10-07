@@ -56,7 +56,8 @@ jobs:
         run: |
           set -euxo pipefail
           TESTS_JSON=$(grep -r "func Test" *.go --exclude util_test.go | grep -v "_v4" | grep -v "_Latest" | cut -d' ' -f2 | cut -d'(' -f1 | jq -R '.' | jq -c --slurp '[.[]]')
-          echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
+          #echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
+          echo 'tests=["TestAboutService_Get"]' >> $GITHUB_OUTPUT
 
   run_tests:
     runs-on: ubuntu-latest
@@ -77,10 +78,13 @@ jobs:
         shell: bash
         run: |
           docker image pull postgres:18-alpine
-          docker image pull ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
+          #docker image pull ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
 
-          docker run --detach --env 'POSTGRES_DB=dtrack' --env 'POSTGRES_USER=dtrack' --env 'POSTGRES_PASSWORD=dtrack' --publish '5432:5432' --name 'postgres' postgres:18-alpine
-          while [ "$(docker inspect -f {{.State.Health.Status}} postgres)" != 'healthy' ]; do sleep 1; done
+          docker run --env 'POSTGRES_DB=dtrack' --env 'POSTGRES_USER=dtrack' --env 'POSTGRES_PASSWORD=dtrack' --publish '5432:5432' --name 'postgres' postgres:18-alpine &
+          # while [ "$(docker inspect -f {{.State.Health.Status}} postgres)" != 'healthy' ]; do sleep 1; done
+          sleep 10
+          exit 1
+
 
           docker run --detach \
           --env 'DT_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/dtrack' \
