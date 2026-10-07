@@ -80,7 +80,7 @@ jobs:
           docker image pull postgres:18-alpine
           #docker image pull ghcr.io/dependencytrack/apiserver:${{ matrix.api }}
 
-          docker run --env 'POSTGRES_DB=dtrack' --env 'POSTGRES_USER=dtrack' --env 'POSTGRES_PASSWORD=dtrack' --publish '5432:5432' --name 'postgres' postgres:18-alpine &
+          docker run --env 'POSTGRES_DB=dtrack' --env 'POSTGRES_USER=dtrack' --env 'POSTGRES_PASSWORD=dtrack' --publish '5432:5432' --name 'postgres' --health-cmd 'pg_isready -U dtrack -d dtrack' postgres:18-alpine &
           # while [ "$(docker inspect -f {{.State.Health.Status}} postgres)" != 'healthy' ]; do sleep 1; done
           sleep 10
           docker inspect postgres
