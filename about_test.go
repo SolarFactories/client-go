@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/mod/semver"
 
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +26,9 @@ func TestAboutService_Get(t *testing.T) {
 	require.NotEmpty(t, about.Timestamp)
 	require.NotEmpty(t, about.Version)
 	require.NotEqual(t, uuid.Nil, about.UUID)
-	require.NotEqual(t, uuid.Nil, about.SystemUUID)
+	if semver.Compare(about.Version, "5") < 0 {
+		require.NotEqual(t, uuid.Nil, about.SystemUUID)
+	}
 	require.Equal(t, "Dependency-Track", about.Application)
 
 	require.NotEmpty(t, about.Framework.Timestamp)
@@ -49,7 +52,7 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 		version = options.Version
 	}
 
-	fmt.Printf("Using host: %v, key: %v.", host, key)
+	fmt.Printf("Using host: %v, key: %v\n.", host, key)
 	if len(host) == 0 {
 		fmt.Println("Starting test container")
 		container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
