@@ -106,3 +106,4 @@ jobs:
         run: docker logs api
       - name: DB Logs
         if: ${{ startsWith(matrix.api, '5.') }}
+        run: docker logs postgres
