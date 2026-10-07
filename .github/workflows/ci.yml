@@ -56,8 +56,7 @@ jobs:
         run: |
           set -euxo pipefail
           TESTS_JSON=$(grep -r "func Test" *.go --exclude util_test.go | grep -v "_v4" | grep -v "_Latest" | cut -d' ' -f2 | cut -d'(' -f1 | jq -R '.' | jq -c --slurp '[.[]]')
-          #echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
-          echo 'tests=["TestAboutService_Get"]' >> $GITHUB_OUTPUT
+          echo "tests=$TESTS_JSON" >> $GITHUB_OUTPUT
 
   run_tests:
     runs-on: ubuntu-latest
@@ -68,9 +67,12 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.list_tests.outputs.tests) }}
         api:
-          - 4.14.4-alpine
+          - 4.11.7
+          #- 4.12.7
+          #- 4.13.6-alpine
+          - 4.14.5-alpine
           #- 5.0.5
-          - 5.1.1
+          - 5.1.2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start Containers v5
