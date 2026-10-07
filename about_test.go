@@ -2,13 +2,15 @@ package dtrack
 
 import (
 	"context"
+	"fmt"
 	"os"
+
+	"log"
+	"testing"
 
 	"github.com/google/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"log"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +49,9 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 		version = options.Version
 	}
 
+	fmt.Printf("Using host: %v, key: %v.", host, key)
 	if len(host) == 0 {
+		fmt.Println("Starting test container")
 		container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 			ContainerRequest: testcontainers.ContainerRequest{
 				Image: "dependencytrack/apiserver:" + version,
@@ -77,9 +81,11 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 	var tmpClient *Client
 	var err error
 	if len(key) > 0 {
+		fmt.Println("Using existing key")
 		tmpClient, err = NewClient(host, WithAPIKey(key))
 		require.NoError(t, err)
 	} else {
+		fmt.Println("Bootstrapping authentication")
 		client, err := NewClient(host)
 		require.NoError(t, err)
 
