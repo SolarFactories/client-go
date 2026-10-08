@@ -26,7 +26,7 @@ func TestAboutService_Get(t *testing.T) {
 	require.NotEmpty(t, about.Timestamp)
 	require.NotEmpty(t, about.Version)
 	require.NotEqual(t, uuid.Nil, about.UUID)
-	if semver.Compare(about.Version, "5") < 0 {
+	if semver.Compare("v"+about.Version, "v5") < 0 {
 		require.NotEqual(t, uuid.Nil, about.SystemUUID)
 	}
 	require.Equal(t, "Dependency-Track", about.Application)
@@ -44,7 +44,8 @@ type testContainerOptions struct {
 
 func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 	ctx := context.Background()
-	host := os.Getenv("DEPENDENCYTRACK_API_HOST")
+	envHost := os.Getenv("DEPENDENCYTRACK_API_HOST")
+	host := envHost
 	key := os.Getenv("DEPENDENCYTRACK_API_KEY")
 
 	version := "latest"
@@ -83,7 +84,7 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 
 	var tmpClient *Client
 	var err error
-	if len(key) > 0 {
+	if len(envHost) > 0 && len(key) > 0 {
 		fmt.Println("Using existing key")
 		tmpClient, err = NewClient(host, WithAPIKey(key))
 		require.NoError(t, err)
@@ -120,6 +121,12 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 
 	apiKey, err := tmpClient.Team.GenerateAPIKey(ctx, team.UUID)
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = tmpClient.Team.DeleteAPIKey(ctx, apiKey.Key)
+		if err != nil {
+			log.Fatalf("failed to delete temporary api key %v", err)
+		}
+	})
 
 	client, err := NewClient(host, WithAPIKey(apiKey.Key))
 	require.NoError(t, err)
