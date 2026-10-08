@@ -2,8 +2,10 @@ package dtrack
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"golang.org/x/mod/semver"
 )
 
 func TestCreateManagedUser(t *testing.T) {
@@ -92,7 +94,13 @@ func TestGetAllManagedUsers(t *testing.T) {
 	require.Equal(t, users[0].Username, "admin")
 	require.Equal(t, len(users[0].Teams), 1)
 	require.Equal(t, users[0].Teams[0].Name, "Administrators")
-	require.Equal(t, len(users[0].Permissions), 14)
+	if semver.Compare("v"+client.about.Version, "v4.12") < 0 {
+		require.Equal(t, len(users[0].Permissions), 12)
+	} else if semver.Compare("v"+client.about.Version, "v5") < 0 {
+		require.Equal(t, len(users[0].Permissions), 14)
+	} else {
+		require.Equal(t, len(users[0].Permissions), 42)
+	}
 
 	require.Equal(t, users[1].Username, "test-managed")
 }

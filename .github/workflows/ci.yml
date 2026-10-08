@@ -85,8 +85,9 @@ jobs:
           #- 4.12.7
           #- 4.13.6-alpine
           - 4.14.5-alpine
-          #- 5.0.5
+          - 5.0.5
           - 5.1.2
+          #- 5.2.0
         exclude:
           - api: 4.11.7
             test: TestBOMService_Upload
@@ -134,6 +135,10 @@ jobs:
             test: TestProjectServce_CreateWithCollection
           - api: 4.11.7
             test: TestTag
+          - api: 5.0.2
+            test: TestTag
+          - api: 5.1.2
+            test: TestTag
           - api: 4.11.7
             test: TestTagCounts
           - api: 5.0.5
@@ -148,6 +153,8 @@ jobs:
             test: TestGenerateAPIKey
           - api: 5.1.2
             test: TestGenerateAPIKey
+          - api: 4.11.7
+            test: TestTagProjects
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start Containers v5
@@ -176,7 +183,7 @@ jobs:
           while [ "$(docker inspect -f {{.State.Health.Status}} api)" != 'healthy' ]; do sleep 1; done
       - name: Run test v5
         if: ${{ startsWith(matrix.api, '5.') }}
-        run: go test -v -cover -run ${{ matrix.test }}
+        run: go test -v -cover -run ^${{ matrix.test }}$
         env:
           DEPENDENCYTRACK_API_HOST: "http://localhost:8080"
       - name: Run test v4
