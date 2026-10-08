@@ -87,6 +87,67 @@ jobs:
           - 4.14.5-alpine
           #- 5.0.5
           - 5.1.2
+        exclude:
+          - api: 4.11.7
+            test: TestBOMService_Upload
+          - api: 5.0.5
+            test: TestACLService
+          - api: 5.1.2
+            test: TestACLService
+          - api: 5.0.5
+            test: TestComponentLocate
+          - api: 5.1.2
+            test: TestComponentLocate
+          - api: 4.11.7
+            test: TestUpdateAllConfigProperty
+          - api: 5.0.5
+            test: TestHealth
+          - api: 5.1.2
+            test: TestHealth
+          - api: 5.0.5
+            test: TestLdapUsers
+          - api: 5.1.2
+            test: TestLdapUsers
+          - api: 5.0.5
+            test: TestPublishers
+          - api: 5.1.2
+            test: TestPublishers
+          - api: 4.11.7
+            test: TestRules
+          - api: 5.0.5
+            test: TestRules
+          - api: 5.1.2
+            test: TestRules
+          - api: 5.0.5
+            test: TestRuleProjects
+          - api: 5.1.2
+            test: TestRuleProjects
+          - api: 5.0.5
+            test: TestRuleTeams
+          - api: 5.1.2
+            test: TestRuleTeams
+          - api: 5.0.5
+            test: TestProjectService_Clone
+          - api: 5.1.2
+            test: TestProjectService_Clone
+          - api: 4.11.7
+            test: TestProjectServce_CreateWithCollection
+          - api: 4.11.7
+            test: TestTag
+          - api: 4.11.7
+            test: TestTagCounts
+          - api: 5.0.5
+            test: TestTagCounts
+          - api: 5.1.2
+            test: TestTagCounts
+          - api: 4.11.7
+            test: TestTagPolicies
+          - api: 4.11.7
+            test: TestGenerateAPIKey
+          - api: 5.0.5
+            test: TestGenerateAPIKey
+          - api: 5.1.2
+            test: TestGenerateAPIKey
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start Containers v5

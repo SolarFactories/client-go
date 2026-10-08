@@ -121,6 +121,7 @@ func (ts TeamService) Update(ctx context.Context, team Team) (t Team, err error)
 }
 
 func (ts TeamService) Delete(ctx context.Context, team Team) (err error) {
+	team = Team{UUID: team.UUID}
 	req, err := ts.client.newRequest(ctx, http.MethodDelete, "api/v1/team", withBody(team))
 	if err != nil {
 		return

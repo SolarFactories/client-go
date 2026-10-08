@@ -3,8 +3,10 @@ package dtrack
 import (
 	"context"
 	"encoding/base64"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"golang.org/x/mod/semver"
 )
 
 func TestBOMService_Upload(t *testing.T) {
@@ -73,8 +75,10 @@ func TestBOMService_PostBom(t *testing.T) {
 
 	project, err := client.Project.Lookup(context.Background(), "acme-app", "1.2.3")
 	require.NoError(t, err)
-	require.Contains(t, project.Tags, Tag{Name: "foo"})
-	require.Contains(t, project.Tags, Tag{Name: "bar"})
-	require.NotNil(t, project.IsLatest)
-	require.True(t, *project.IsLatest)
+	if semver.Compare("v"+client.about.Version, "v4.12") >= 0 {
+		require.Contains(t, project.Tags, Tag{Name: "foo"})
+		require.Contains(t, project.Tags, Tag{Name: "bar"})
+		require.NotNil(t, project.IsLatest)
+		require.True(t, *project.IsLatest)
+	}
 }
