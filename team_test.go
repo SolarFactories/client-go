@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/mod/semver"
 )
 
 func TestGenerateAPIKey_v4_12(t *testing.T) {
@@ -111,7 +112,11 @@ func TestDeleteAPIKey(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(keys), 1)
 
-	err = client.Team.DeleteAPIKey(context.Background(), key.PublicId)
+	if semver.Compare("v"+client.about.Version, "v4.13") >= 0 {
+		err = client.Team.DeleteAPIKey(context.Background(), key.PublicId)
+	} else {
+		err = client.Team.DeleteAPIKey(context.Background(), key.Key)
+	}
 	require.NoError(t, err)
 
 	keys, err = client.Team.GetAPIKeys(context.Background(), team.UUID)
@@ -163,7 +168,12 @@ func TestUpdateAPIKeyComment(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, key.Comment, "")
 
-	comment, err := client.Team.UpdateAPIKeyComment(context.Background(), key.PublicId, "test-comment")
+	var comment string
+	if semver.Compare("v"+client.about.Version, "v4.13") >= 0 {
+		comment, err = client.Team.UpdateAPIKeyComment(context.Background(), key.PublicId, "test-comment")
+	} else {
+		comment, err = client.Team.UpdateAPIKeyComment(context.Background(), key.Key, "test-comment")
+	}
 	require.NoError(t, err)
 	require.Equal(t, comment, "test-comment")
 
