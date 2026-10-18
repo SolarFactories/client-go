@@ -53,6 +53,7 @@ type testContainerOptions struct {
 }
 
 func setUpContainer(t *testing.T, options testContainerOptions) *Client {
+	t.Helper()
 	ctx := context.Background()
 
 	version := "latest"
