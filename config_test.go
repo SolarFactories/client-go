@@ -71,9 +71,9 @@ func TestUpdateAllConfigProperty(t *testing.T) {
 	cps, err := client.Config.UpdateAll(context.Background(), []ConfigProperty{baseUrl, badgeEnabled, defaultLocale})
 	require.NoError(t, err)
 	require.Equal(t, len(cps), 3)
-	require.Equal(t, cps[0], baseUrl)
-	require.Equal(t, cps[1], badgeEnabled)
-	require.Equal(t, cps[2], defaultLocale)
+	require.Equal(t, *cps[0].Response, baseUrl)
+	require.Equal(t, *cps[1].Response, badgeEnabled)
+	require.Equal(t, *cps[2].Response, defaultLocale)
 }
 
 func TestUnsetConfigProperty(t *testing.T) {

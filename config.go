@@ -1,7 +1,9 @@
 package dtrack
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -17,6 +19,12 @@ type ConfigProperty struct {
 
 type ConfigService struct {
 	client *Client
+}
+
+// v5+.
+type UpdateConfigPropertyBulkResponseItem struct {
+	Error    *string
+	Response *ConfigProperty
 }
 
 func (cs ConfigService) GetAll(ctx context.Context) (cps []ConfigProperty, err error) {
@@ -54,11 +62,34 @@ func (cs ConfigService) Update(ctx context.Context, config ConfigProperty) (cp C
 	return
 }
 
-func (cs ConfigService) UpdateAll(ctx context.Context, configs []ConfigProperty) (cps []ConfigProperty, err error) {
+func (cs ConfigService) UpdateAll(ctx context.Context, configs []ConfigProperty) (cps []UpdateConfigPropertyBulkResponseItem, err error) {
 	req, err := cs.client.newRequest(ctx, http.MethodPost, "api/v1/configProperty/aggregate", withBody(configs))
 	if err != nil {
 		return
 	}
 	_, err = cs.client.doRequest(req, &cps)
 	return
+}
+
+func (item *UpdateConfigPropertyBulkResponseItem) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+
+	if len(data) > 0 && data[0] == '"' {
+		var s string
+		err := json.Unmarshal(data, &s)
+		if err != nil {
+			return err
+		}
+		item.Error = &s
+		item.Response = nil
+		return nil
+	}
+	var response ConfigProperty
+	err := json.Unmarshal(data, &response)
+	if err != nil {
+		return err
+	}
+	item.Response = &response
+	item.Error = nil
+	return nil
 }
