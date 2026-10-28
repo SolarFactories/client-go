@@ -36,13 +36,13 @@ func TestAboutService_Get(t *testing.T) {
 // Dependency-Track version >= 5 with a PostgreSQL container alongside it.
 func TestSetUpContainer_WithPostgres(t *testing.T) {
 	client := setUpContainer(t, testContainerOptions{
-		Version:     "5.2.0",
+		Version:     "5.2.1",
 		UsePostgres: true,
 	})
 
 	about, err := client.About.Get(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, "5.2.0", about.Version)
+	require.Equal(t, "5.2.1", about.Version)
 	require.Equal(t, "Dependency-Track", about.Application)
 }
 
@@ -59,6 +59,12 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 	version := "latest"
 	if options.Version != "" {
 		version = options.Version
+	}
+	// TODO: Dummy version, for tests that need to specify v5, but not any specific minor version.
+	// To be removed, along with tests updating when `"latest"` tags points to v5.
+	if version == "v5-latest" {
+		version = "5.2.1"
+		options.UsePostgres = true
 	}
 
 	// TODO: Use the block below once "latest" tag points to "v5"
@@ -113,7 +119,7 @@ func setUpContainer(t *testing.T, options testContainerOptions) *Client {
 		env["DT_DATASOURCE_URL"] = "jdbc:postgresql://postgres:5432/dtrack"
 		env["DT_DATASOURCE_USERNAME"] = "dtrack"
 		env["DT_DATASOURCE_PASSWORD"] = "dtrack"
-		waitingFor = wait.ForListeningPort("8080/tcp")
+		waitingFor = wait.ForHTTP("api/version")
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

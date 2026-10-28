@@ -58,6 +58,7 @@ type Client struct {
 	Project             ProjectService
 	ProjectProperty     ProjectPropertyService
 	Repository          RepositoryService
+	Secrets             SecretsService
 	Tag                 TagService
 	Team                TeamService
 	User                UserService
@@ -114,6 +115,7 @@ func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
 	client.Project = ProjectService{client: &client}
 	client.ProjectProperty = ProjectPropertyService{client: &client}
 	client.Repository = RepositoryService{client: &client}
+	client.Secrets = SecretsService{client: &client}
 	client.Tag = TagService{client: &client}
 	client.Team = TeamService{client: &client}
 	client.User = UserService{client: &client}
@@ -336,6 +338,18 @@ func withPageOptions(po PageOptions) requestOption {
 	}
 }
 
+type TotalCountType string
+
+const (
+	TotalCountTypeAtLeast TotalCountType = "AT_LEAST"
+	TotalCountTypeExact   TotalCountType = "EXACT"
+)
+
+type TotalCount struct {
+	Count uint64         `json:"count"`
+	Type  TotalCountType `json:"type"`
+}
+
 type SortOptions struct {
 	Name  string `json:"sortName"`
 	Order string `json:"sortOrder"`
@@ -403,8 +417,9 @@ func (c Client) doRequest(req *http.Request, v interface{}) (a apiResponse, err 
 				return
 			}
 		default:
-			if contentType != "application/json" {
-				err = fmt.Errorf("expected application/json content-type, but received %s", contentType)
+			expectedContentTypes := []string{"application/json", "application/problem+json"}
+			if !sliceContains(expectedContentTypes, contentType) {
+				err = fmt.Errorf("expected %s content-type, but received %s", strings.Join(expectedContentTypes, ", "), contentType)
 				return
 			}
 			err = json.NewDecoder(res.Body).Decode(v)
