@@ -15,6 +15,7 @@ const (
 	PermissionPolicyViolationAnalysis = "POLICY_VIOLATION_ANALYSIS"
 	PermissionPortfolioManagement     = "PORTFOLIO_MANAGEMENT"
 	PermissionProjectCreationUpload   = "PROJECT_CREATION_UPLOAD"
+	PermissionSecretManagement        = "SECRET_MANAGEMENT"
 	PermissionSystemConfiguration     = "SYSTEM_CONFIGURATION"
 	PermissionTagManagement           = "TAG_MANAGEMENT"
 	PermissionViewBadges              = "VIEW_BADGES"

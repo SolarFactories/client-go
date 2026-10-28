@@ -71,7 +71,7 @@ func (ss SecretsService) Create(ctx context.Context, secret CreateSecretRequest)
 		return
 	}
 
-	req, err := ss.client.newRequest(ctx, http.MethodPost, "api/v2/secrets", withBody(secret))
+	req, err := ss.client.newRequest(ctx, http.MethodPost, "api/v2/secrets", withBody(secret), withAcceptContentType(""))
 	if err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (ss SecretsService) Delete(ctx context.Context, name string) (err error) {
 		return
 	}
 
-	req, err := ss.client.newRequest(ctx, http.MethodDelete, "api/v2/secrets/"+name)
+	req, err := ss.client.newRequest(ctx, http.MethodDelete, "api/v2/secrets/"+name, withAcceptContentType(""))
 	if err != nil {
 		return
 	}
@@ -121,11 +121,14 @@ func (ss SecretsService) Update(ctx context.Context, name string, secret UpdateS
 		return
 	}
 
-	req, err := ss.client.newRequest(ctx, http.MethodPatch, "api/v2/secrets/"+name, withBody(secret))
+	req, err := ss.client.newRequest(ctx, http.MethodPatch, "api/v2/secrets/"+name, withBody(secret), withAcceptContentType(""))
 	if err != nil {
 		return
 	}
 
 	_, err = ss.client.doRequest(req, nil)
+	if err != nil && err.Error() == "api error (status: 304)" {
+		err = nil
+	}
 	return
 }

@@ -417,8 +417,9 @@ func (c Client) doRequest(req *http.Request, v interface{}) (a apiResponse, err 
 				return
 			}
 		default:
-			if contentType != "application/json" {
-				err = fmt.Errorf("expected application/json content-type, but received %s", contentType)
+			expectedContentTypes := []string{"application/json", "application/problem+json"}
+			if !sliceContains(expectedContentTypes, contentType) {
+				err = fmt.Errorf("expected %s content-type, but received %s", strings.Join(expectedContentTypes, ", "), contentType)
 				return
 			}
 			err = json.NewDecoder(res.Body).Decode(v)
