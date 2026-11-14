@@ -43,6 +43,7 @@ type Client struct {
 	Component           ComponentService
 	Config              ConfigService
 	Event               EventService
+	Extension           ExtensionService
 	Finding             FindingService
 	Health              HealthService
 	LDAP                LDAPService
@@ -100,6 +101,7 @@ func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
 	client.Component = ComponentService{client: &client}
 	client.Config = ConfigService{client: &client}
 	client.Event = EventService{client: &client}
+	client.Extension = ExtensionService{client: &client}
 	client.Finding = FindingService{client: &client}
 	client.Health = HealthService{client: &client}
 	client.LDAP = LDAPService{client: &client}
