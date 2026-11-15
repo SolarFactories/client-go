@@ -402,7 +402,7 @@ func (c Client) doRequest(req *http.Request, v interface{}) (a apiResponse, err 
 		return
 	}
 
-	if v != nil {
+	if v != nil && res.StatusCode != 204 {
 		contentType := res.Header.Get("Content-Type")
 		contentType = strings.SplitN(contentType, ";", 2)[0]
 		switch vt := v.(type) {

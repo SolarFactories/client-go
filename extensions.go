@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// Since v5
+// Since v5.0
 
 type ExtensionService struct {
 	client *Client
@@ -45,9 +45,10 @@ type ExtensionConfig struct {
 	Config map[string]any `json:"config"`
 }
 
+// Custom UnmarshalJSON
 type GetExtensionConfigSchemaResponse struct {
-	SchemaURL string         `json:"$schema"`
-	Schema    map[string]any `json:"schema"`
+	SchemaURL string
+	Schema    map[string]any
 }
 
 type TestExtensionResponse struct {
@@ -113,7 +114,7 @@ func (es ExtensionService) GetExtensionConfig(ctx context.Context, extension Ext
 	return
 }
 
-func (es ExtensionService) GetExtensionConfigSchema(ctx context.Context, extension ExtensionIdentity) (schema *GetExtensionConfigSchemaResponse, err error) {
+func (es ExtensionService) GetExtensionConfigSchema(ctx context.Context, extension ExtensionIdentity) (schema GetExtensionConfigSchemaResponse, err error) {
 	err = es.client.assertServerVersionAtLeast("5.0.0")
 	if err != nil {
 		return
@@ -124,14 +125,11 @@ func (es ExtensionService) GetExtensionConfigSchema(ctx context.Context, extensi
 		return
 	}
 
-	res, err := es.client.doRequest(req, nil)
+	_, err = es.client.doRequest(req, &schema)
 	if err != nil {
 		return
 	}
 
-	if res.StatusCode != 204 {
-		err = json.NewDecoder(res.Body).Decode(schema)
-	}
 	return
 }
 
@@ -156,11 +154,23 @@ func (es ExtensionService) TestExtension(ctx context.Context, extension Extensio
 		return
 	}
 
-	req, err := es.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v2/extension-points/%/extensions/%s/test", extension.ExtensionPointName, extension.ExtensionName), withBody(config))
+	req, err := es.client.newRequest(ctx, http.MethodPost, fmt.Sprintf("api/v2/extension-points/%s/extensions/%s/test", extension.ExtensionPointName, extension.ExtensionName), withBody(config))
 	if err != nil {
 		return
 	}
 
 	_, err = es.client.doRequest(req, &r)
 	return
+}
+
+func (r *GetExtensionConfigSchemaResponse) UnmarshalJSON(data []byte) error {
+	var response map[string]any
+	if err := json.Unmarshal(data, &response); err != nil {
+		return err
+	}
+
+	r.SchemaURL, _ = response["$schema"].(string)
+	delete(response, "$schema")
+	r.Schema = response
+	return nil
 }
